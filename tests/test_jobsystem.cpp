@@ -95,6 +95,15 @@ static void TestCancelPending(TestRunner& runner)
         js.Stop(core::JobSystem::StopMode::CancelPending);
     });
 
+    const auto stopDeadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
+    while (std::chrono::steady_clock::now() < stopDeadline)
+    {
+        if (js.GetStats().queued == 0)
+            break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    CHECK(js.GetStats().queued == 0);
+
     {
         std::lock_guard<std::mutex> lock(mtx);
         release = true;
